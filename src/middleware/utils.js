@@ -45,17 +45,28 @@ exports.howManyWords = async (text) => {
 
 // Justify the text
 exports.justifyText = async (text) => {
+  let paragraphs = text.split("\r\n");
+  for (let i = 0; i < paragraphs.length; i++) {
+    paragraphs[i] = await justifyParagraph(paragraphs[i]);
+  }
+
+  return paragraphs.join("\n");
+};
+
+// Justify paragraph
+const justifyParagraph = async (text) => {
   let allWords = await this.getAllWords(text);
   let allSentences = [];
   let oneSentence = "";
 
+  // Text split into multiple sentences of 80char max
   for (let i = 0; i < allWords.length; i++) {
     const oneWord = allWords[i];
     let tempSentence = oneSentence;
     tempSentence += oneWord + " ";
     if (tempSentence.length > 81) {
       allSentences.push(oneSentence);
-      oneSentence = oneWord;
+      oneSentence = oneWord + " ";
     } else if (tempSentence.length === 81) {
       oneSentence += oneWord;
       allSentences.push(oneSentence);
@@ -68,5 +79,28 @@ exports.justifyText = async (text) => {
     }
   }
 
+  // Adding spaces randomly to get 80char max per lign if a lign is at 80% (64 char), up to 16 spaces to add max
+  for (let i = 0; i < allSentences.length; i++) {
+    allSentences[i] = allSentences[i].trim();
+    if (allSentences[i].length > 63) {
+      while (allSentences[i].length < 80) {
+        let indexesOfSpaces = await getIndexOfTarget(allSentences[i], " ");
+        var randomItem = await indexesOfSpaces[Math.floor(Math.random() * indexesOfSpaces.length)];
+        allSentences[i] = `${allSentences[i].slice(0, randomItem)} ${allSentences[i].slice(randomItem)}`;
+      }
+    }
+  }
+
   return allSentences.join("\n");
+};
+
+const getIndexOfTarget = (text, target) => {
+  let pos = text.indexOf(target);
+  let indexesOfTarget = [];
+
+  while (pos != -1) {
+    indexesOfTarget.push(pos);
+    pos = text.indexOf(target, pos + 1);
+  }
+  return indexesOfTarget;
 };

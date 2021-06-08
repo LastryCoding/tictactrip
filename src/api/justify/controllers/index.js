@@ -4,6 +4,9 @@ const { switchStatusResponse } = require("./../../../middleware/statusRes");
 
 // JUSTIFY
 exports.justify = async (req, res) => {
+  // Even if it is a secure route
+  // If user, then we have a valid token
+  // Else no valid token
   if (req.user) {
     let content = {
       text: req.body,
